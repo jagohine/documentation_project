@@ -1,8 +1,7 @@
-site_name: COMM_DOC_PROJECT Docs
+site_name: Jago and Rajan's COMM documentation project
 nav:
   - Home: index.md
-  - About: about.md
-  - Google Surveys: google_surveys.md
   - GPG: gpg.md
-  - Thing: thing.md
+  - Using git: git_tutorial.md
+  - Something else: placeholder.md
 
