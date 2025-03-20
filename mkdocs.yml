@@ -1,0 +1,8 @@
+site_name: COMM_DOC_PROJECT Docs
+nav:
+  - Home: index.md
+  - About: about.md
+  - Google Surveys: google_surveys.md
+  - GPG: gpg.md
+  - Thing: thing.md
+
