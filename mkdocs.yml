@@ -1,7 +1,5 @@
 site_name: Jago and Rajan's COMM documentation project
 nav:
   - Home: index.md
-  - GPG: gpg.md
-  - Using git: git_tutorial.md
-  - Something else: placeholder.md
+  - Verifying methods: method_verification.md
 
