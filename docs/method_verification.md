@@ -16,7 +16,7 @@ public class BankAccount {
         balance -= amount; 
     }
 
-    /*@ pure @*/ public int getBalance() {
+    public int getBalance() {
         return balance;
     }
 }
