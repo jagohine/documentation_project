@@ -29,7 +29,7 @@ This is obviously a ridiculously simplified model of a bank account, but there i
 
 By prepending a ```/*@ spec_public @*/ ``` expression to a variable declaration, we're telling the OpenJML verifier that the instance variable in question is part of the specification to be verified. Even though instance variables are generally private, we might want to establish facts about them, and the ``` /*@ spec_public @*/ ``` expression makes them visible to the verifier.
 
-```java linenums="1"
+```java 
 
 public class BankAccount {
     private /*@ spec_public @*/ int balance;
