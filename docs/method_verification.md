@@ -1,7 +1,7 @@
 # Method verification
 
 
-### 1.Create a BankAccount class using the following code:
+## 1.Create a BankAccount class using the following code:
 
 ```java hl_lines="4-9" 
 
@@ -24,7 +24,7 @@ public class BankAccount {
 
 This is obviously a ridiculously simplified model of a bank account, but there is enough complexity in it to show us the power of JML. 
 
-### 2. Make our ```balance``` instance variable accesible to the verifier 
+## 2.Make our ```balance``` instance variable accesible to the verifier 
 
 By prepending a ```/*@ spec_public @*/ ``` expression to a variable declaration, we're telling the OpenJML verifier that the instance variable in question is part of the specification to be verified. Even though instance variables are generally private, we might want to establish facts about them, and the ``` /*@ spec_public @*/ ``` expression makes them visible to the verifier.
 
@@ -48,7 +48,7 @@ public class BankAccount {
 ```
 
 
-### 3. Make ```balance``` assignable in our ```withdraw()``` method
+## 3.Make ```balance``` assignable in our ```withdraw()``` method
 
 
 JML allows us to specify which variables can be mutated and which cannot. This both helps us as developers restrict our code's behaviour and helps the openJML verifier analyze that behaviour. The instance variable ```balance``` is mutated by ```withdraw()```, so we, we can declare ```balance``` to be assignable by ```withdraw()``` using a ```@ assignable VARIABLE``` clause in the contract for ```withdraw()```.
@@ -71,7 +71,7 @@ public class BankAccount {
 }
 ```
 
-### 4. Add preconditions
+## 4.Add preconditions
 Preconditions are the assumptions we make about the environment before we verify things. We're saying "Assuming these things are true, we can verify these other things are also true". Preconditions tell us when our contract applies. We can create preconditions using the ```requires``` keyword. 
 
 
@@ -97,7 +97,7 @@ public class BankAccount {
 This ``` @ requires amount >= 0; ``` expression is saying "The precondition for our contract applying is that the ```amount``` variable is non-negative".
 
 
-### 5. Mark our getter(s) as 'pure'
+## 5.Mark our getter(s) as 'pure'
 A 'pure' method is one without any side effects (i.e, one which doesn't mutate any instance variables). Pure methods are very important in JML because they are the only methods in terms of which we can write our contracts. Since we want to verify claims about how the balance of our bank accounts are affected by withdrawing money, we will write our claims in terms of the behaviour of the ```getBalance()``` getter. To do this, we first need to explicitly mark it as pure, using the ```pure``` keyword:
 
 ```java hl_lines="4-9" 
@@ -119,7 +119,7 @@ public class BankAccount {
 }
 ```
 
-### 6. Add postconditions
+## 6.Add postconditions
 Post conditions are conditions about the environment that we will verify are true *after* our method has run. They are the conditions we are trying to prove actually obtain. In this case, we want to verify that withdrawing money never increases the amount of money in the account.
 
 In JML we write postconditions using ```ensures``` expressions of the form ```//@ ensures PROPERTY```, where ```PROPERTY``` is some proposition we want to require be true after our method as returned. 
@@ -155,7 +155,7 @@ public class BankAccount {
 }
 ```
 
-### 7. Perform the verification
+## 7.Perform the verification
 
 We now have everything in place to try to verify the correctness of our method. Now, we use opeJML to do that, using the following command:
 #### Command:
@@ -175,7 +175,7 @@ BankAccount.java:14: verify: The prover cannot establish an assertion (Arithmeti
 
 ```
 
-### 7. Read OpenJML's output after the attempted verification
+## 7.Read OpenJML's output after the attempted verification
 
 Uh oh. Those errors from Step 7 don't look good! What happened? 
 
@@ -186,7 +186,7 @@ The loop-hole is because we're representing the account balance with Java's int 
 Because of this, our BankAccount class actually allows someone to *increase* their bank balance by withdrawing money! Not by withdrawing negative values of money, but by underflowing the int variable keeping track of the bank balance. JML just helped us catch a financially important logic bug! Now we just have to fix it.
 
 
-### 9. Revise the code to resolve loop-holes
+### 9.Revise the code to resolve loop-holes
 
 There are many ways we could fix our integer underflow problem. One of the most straightfoward is to just throw an exception in the pathological case, like so:
 
@@ -200,7 +200,7 @@ public void withdraw(int amount) {
 ```
 In our new ```withdraw()``` method, we check for underflow and throw an error if we find it, and we cast our ints to longs as we check to avoid creating an underflow in our check. This takes care of our underflow issue.
 
-###  10. Revising our JML conditions to match our new code
+## 10.Revising our JML conditions to match our new code
 
 We have fixed our code, but we've done so by introducing exceptions. We now need to adjust our contract to define correctness for those exceptions. Informally, our code should always throw an IllegalArgumentException when ```withdraw()``` is passed an underflow-producing value and never otherwise. Here's what that contract looks like in JML:
 
