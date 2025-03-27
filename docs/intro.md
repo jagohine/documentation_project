@@ -1,2 +1,2 @@
 # Introduction
-Hi. This documentation will introduce you to software verification with JML. The goal is to develop a practical understanding of JML through simple examples. We will focus 
+Hi. This documentation will introduce you to software verification with JML. The goal is to develop a practical understanding of basic JML through simple examples. This is not a reference or a textbook, it's a minimal introduction.
