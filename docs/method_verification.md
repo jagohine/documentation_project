@@ -163,10 +163,10 @@ The reason it's so important to not just jump to the correct JML code is that *r
 
 Ok, now that we're emotionally prepared for failure, we try to verify what we've done so far with openJML:
 
-#### Command:
+Command:
 ```./openJML -esc BankAccount.java ```
 
-### Output:
+Output:
 ```
 BankAccount.java:13: verify: The prover cannot establish an assertion (Postcondition: BankAccountBad.java:10:) in method withdraw
     public void withdraw(int amount) {
