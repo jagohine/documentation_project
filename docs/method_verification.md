@@ -155,11 +155,17 @@ public class BankAccount {
 }
 ```
 
-## 7.Perform the verification
+## 7. Attempt verification
 
-We now have everything in place to try to verify the correctness of our method. Now, we use opeJML to do that, using the following command:
+At this point it might seem like we have everthing in place and the only thing left to do is feed our program into openJML for verification, but unfortunately we're not quite done yet. We *will* try to verify our program in a moment, but we'll find that openJML isn't yet ready to accept our annotations. Don't worry though, we'll fix it, but it's important to motivate the fix by considering the error messages openJML gives us. 
+
+The reason it's so important to not just jump to the correct JML code is that *revising our code in response to openJML's error messages is an essential part of working with JML*. This tutorial wouldn't be complete if we didn't get our hands dirty with the trial-and-error revision process.
+
+Ok, now that we're emotionally prepared for failure, we try to verify what we've done so far with openJML:
+
 #### Command:
 ```./openJML -esc BankAccount.java ```
+
 ### Output:
 ```
 BankAccount.java:13: verify: The prover cannot establish an assertion (Postcondition: BankAccountBad.java:10:) in method withdraw
