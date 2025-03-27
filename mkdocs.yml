@@ -1,5 +1,10 @@
 site_name: Jago and Rajan's COMM documentation project
+theme:
+  name: material
+  features:
+    - content.code.copy
 nav:
   - Home: index.md
   - Verifying methods: method_verification.md
+
 
