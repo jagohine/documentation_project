@@ -3,7 +3,7 @@
 ## 1
 Create a BankAccount class using the following code:
 
-```linenums="1"
+```py linenums="1"
 
 public class BankAccount {
     private int balance;
@@ -29,7 +29,7 @@ This is obviously a ridiculously simplified model of a bank account, but there i
 
 By prepending a ```/*@ spec_public @*/ ``` expression to a variable declaration, we're telling the OpenJML verifier that the instance variable in question is part of the specification to be verified. Even though instance variables are generally private, we might want to establish facts about them, and the ``` /*@ spec_public @*/ ``` expression makes them visible to the verifier.
 
-```linenums="1"
+```py linenums="1"
 
 public class BankAccount {
     private /*@ spec_public @*/ int balance;
@@ -55,7 +55,7 @@ public class BankAccount {
 
 JML allows us to specify which variables can be mutated and which cannot. This both helps us as developers restrict our code's behaviour and helps the openJML verifier analyze that behaviour. The instance variable ```balance``` is mutated by ```withdraw()```, so we, we can declare ```balance``` to be assignable by ```withdraw()``` using a ```@ assignable VARIABLE``` clause in the contract for ```withdraw()```.
 
-```linenums="1"
+```py linenums="1"
 public class BankAccount {
     private /*@ spec_public @*/ int balance;
 
@@ -78,7 +78,7 @@ public class BankAccount {
 Preconditions are the assumptions we make about the environment before we verify things. We're saying "Assuming these things are true, we can verify these other things are also true". Preconditions tell us when our contract applies. We can create preconditions using the ```requires``` keyword. 
 
 
-```linenums="1"
+```py linenums="1"
 public class BankAccount {
     private /*@ spec_public @*/ int balance;
 
@@ -103,7 +103,7 @@ This ``` @ requires amount >= 0; ``` expression is saying "The precondition for 
 ### Mark our getter(s) as 'pure'
 A 'pure' method is one without any side effects (i.e, one which doesn't mutate any instance variables). Pure methods are very important in JML because they are the only methods in terms of which we can write our contracts. Since we want to verify claims about how the balance of our bank accounts are affected by withdrawing money, we will write our claims in terms of the behaviour of the ```getBalance()``` getter. To do this, we first need to explicitly mark it as pure, using the ```pure``` keyword:
 
-```linenums="1"
+```py linenums="1"
 public class BankAccount {
     private /*@ spec_public @*/ int balance;
 
@@ -139,7 +139,7 @@ In english: ensure that the balance after the method is called is less than or e
 After adding our ```ensures``` clause, our code looks like this:
 
 
-```linenums="1"
+```py linenums="1"
 public class BankAccount {
     private /*@ spec_public @*/ int balance;
 
@@ -197,7 +197,7 @@ Because of this, our BankAccount class actually allows someone to *increase* the
 
 There are many ways we could fix our integer underflow problem. One of the most straightfoward is to just throw an exception in the pathological case, like so:
 
-```linenums="1"
+```py linenums="1"
 public void withdraw(int amount) {
     if ((long) balance - (long) amount < Integer.MIN_VALUE) {
         throw new IllegalArgumentException("Withdrawal would cause underflow");
@@ -212,7 +212,7 @@ In our new ```withdraw()``` method, we check for underflow and throw an error if
 
 We have fixed our code, but we've done so by introducing exceptions. We now need to adjust our contract to define correctness for those exceptions. Informally, our code should always throw an IllegalArgumentException when ```withdraw()``` is passed an underflow-producing value and never otherwise. Here's what that contract looks like in JML:
 
-```linenums="1"
+```py linenums="1"
 /*@ public normal_behavior
   @ requires amount >= 0 && ((long) balance - (long) amount) >= Integer.MIN_VALUE;
   @ assignable balance;
