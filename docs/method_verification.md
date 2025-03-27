@@ -3,7 +3,7 @@
 ## 1
 Create a BankAccount class using the following code:
 
-```java linenums="1"
+```java hl_lines="4 5" linenums="1"
 
 public class BankAccount {
     private int balance;
