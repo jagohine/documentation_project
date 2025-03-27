@@ -1,6 +1,7 @@
 # Method verification
 
-## 1 Create a BankAccount class using the following code:
+
+### 1.Create a BankAccount class using the following code:
 
 ```java hl_lines="4-9" 
 
