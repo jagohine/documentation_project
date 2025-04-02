@@ -7,8 +7,8 @@ theme:
 nav:
   - Home: intro.md
   - Task 1 - Specifying methods: method_verification.md
-  - Task 2 - Specifying class invariants: new_account-registry-task.md
-  - Task 3 - Specifying interface implementations: interface-verification.md
+  - Task 2 - Specifying class invariants: new_account_registry_task.md
+  - Task 3 - Specifying interface implementations: interface_verification.md
   - External resources: external_resources.md
   - Glossary: glossary.md
   - About: about.md
