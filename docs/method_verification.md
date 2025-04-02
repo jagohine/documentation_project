@@ -1,10 +1,16 @@
-# Method verification
+# Method specification
+## Introduction
+
+We will begin our JML journey by specifying and then verifying a [property](glossary.md#property) of a method. We will imagine we work for a bank, and are interested in verifying that the software we use to model customer bank accounts is secure. 
+
+    
 
 
-## 1.Create a BankAccount class using the following code:
+## 1. Create a BankAccount class 
 
-```java hl_lines="4-9" 
+We start off by writing our naive implementation of a class for modeling bank accounts.
 
+```java 
 public class BankAccount {
     private int balance;
 
@@ -22,13 +28,11 @@ public class BankAccount {
 }
 ```
 
-This is obviously a ridiculously simplified model of a bank account, but there is enough complexity in it to show us the power of JML. 
+## 2. Make our ```balance``` instance variable accesible to the verifier 
+To verify the security of our software, we will want to come up with a [specification](glossary.md#specification) that captures some notion of security. In this case, we will want to specify that the ```withdraw()``` method affects the ```balance``` instance variable in a safe way (more on that later). By default, JML does not have access to instance variables, so we must mark our ```balance``` variable as public (i.e, available to be used in JML specifications) using the ```spec_public``` keyword.
 
-## 2.Make our ```balance``` instance variable accesible to the verifier 
 
-By prepending a ```/*@ spec_public @*/ ``` expression to a variable declaration, we're telling the OpenJML verifier that the instance variable in question is part of the specification to be verified. Even though instance variables are generally private, we might want to establish facts about them, and the ``` /*@ spec_public @*/ ``` expression makes them visible to the verifier.
-
-```java hl_lines="4-9" 
+```java hl_lines="2" 
 
 public class BankAccount {
     private /*@ spec_public @*/ int balance;
@@ -47,13 +51,16 @@ public class BankAccount {
 }
 ```
 
+!!! note
+    The ```@ EXPRESSION @``` form is common to every JML line and distinguishes JML from java comments to **OpenJML**.
 
-## 3.Make ```balance``` assignable in our ```withdraw()``` method
+## 3. Make ```balance``` assignable in our ```withdraw()``` method
 
 
-JML allows us to specify which variables can be mutated and which cannot. This both helps us as developers restrict our code's behaviour and helps the openJML verifier analyze that behaviour. The instance variable ```balance``` is mutated by ```withdraw()```, so we, we can declare ```balance``` to be assignable by ```withdraw()``` using a ```@ assignable VARIABLE``` clause in the contract for ```withdraw()```.
+JML requires us to indicate which variables can be mutated by a given method and which cannot, by using the ```assignable``` keyword. Since ```withdraw()``` mutates ```balance```, we must include the expression ```assignable balance``` in the specification of ```withdraw()```.
 
-```java hl_lines="4-9" 
+
+```java hl_lines="7" 
 public class BankAccount {
     private /*@ spec_public @*/ int balance;
 
@@ -71,11 +78,13 @@ public class BankAccount {
 }
 ```
 
-## 4.Add preconditions
-Preconditions are the assumptions we make about the environment before we verify things. We're saying "Assuming these things are true, we can verify these other things are also true". Preconditions tell us when our contract applies. We can create preconditions using the ```requires``` keyword. 
+## 4. Add preconditions
 
+[Preconditions](glossary.md#precondition) are the assumptions we make about the environment before we verify things. We use them to verify that some property holds of some object, *under some assumption*. For example, a precondition in a method specification could be that the value of an argument variable is positive. This ability to make specifications that depend on assumptions is extremely useful, because it allows us to break up "the burden of proof" (i.e, the fact that openJML has to prove) into different components, which can make provable specifications easier to discover and easier to understand.
 
-```java hl_lines="4-9" 
+We can create preconditions using the ```requires``` keyword. We will include the precondition that the quantity of money being withdrawn from the account by ```withdraw()``` is non-negative. We're ignoring the danger of this unenforced assumption for the sake of simplicity. 
+
+```java hl_lines="7" 
 public class BankAccount {
     private /*@ spec_public @*/ int balance;
 
@@ -94,13 +103,12 @@ public class BankAccount {
     }
 }
 ```
-This ``` @ requires amount >= 0; ``` expression is saying "The precondition for our contract applying is that the ```amount``` variable is non-negative".
+This ```requires amount >= 0; ``` expression is saying "This specification assumes that the value of ```amount``` is non-negative. Under that assumption, we require that the rest of the specification is satisfied." 
 
+## 5. Mark our getter(s) as 'pure'
+A ['pure'](glossary.md#pure-methods) method is one without any side effects (i.e, one which doesn't mutate any instance variables). Pure methods are very important in JML because they are the only methods in terms of which we can write our contracts. Since we want to verify claims about how the balance of our bank accounts are affected by withdrawing money, we will write our claims in terms of the behaviour of the ```getBalance()``` getter. To do this, we first need to explicitly mark it as pure, using the ```pure``` keyword:
 
-## 5.Mark our getter(s) as 'pure'
-A 'pure' method is one without any side effects (i.e, one which doesn't mutate any instance variables). Pure methods are very important in JML because they are the only methods in terms of which we can write our contracts. Since we want to verify claims about how the balance of our bank accounts are affected by withdrawing money, we will write our claims in terms of the behaviour of the ```getBalance()``` getter. To do this, we first need to explicitly mark it as pure, using the ```pure``` keyword:
-
-```java hl_lines="4-9" 
+```java hl_lines="13" 
 public class BankAccount {
     private /*@ spec_public @*/ int balance;
 
@@ -119,18 +127,21 @@ public class BankAccount {
 }
 ```
 
-## 6.Add postconditions
-Post conditions are conditions about the environment that we will verify are true *after* our method has run. They are the conditions we are trying to prove actually obtain. In this case, we want to verify that withdrawing money never increases the amount of money in the account.
+## 6. Add postconditions
 
-In JML we write postconditions using ```ensures``` expressions of the form ```//@ ensures PROPERTY```, where ```PROPERTY``` is some proposition we want to require be true after our method as returned. 
+Postconditions are conditions about the environment that our specification requires to be true after our method has executed. When combined with precondiions, we can write specifications of the form "If this precondition obtains, then this postcondition must obtain". 
 
-Often, the propositions we would like to verify are true of our methods involve the previous state of some instance variables. We want to know how our method *affected* some instance variables, not just what the states of those instance variables are. To do this, we need a way of referring to the previous state of an object. That's where ```\old(VARIABLE)``` expressions come in.  ```\old(VARIABLE)``` refers to the state of the instance variable ```VARIABLE``` before the method is called, and ```VARIABLE``` refers to the state of the instance variable ```VARIABLE``` *after* the method is called. This allows us to create contracts that specify how methods affect objects, rather than just what the state of instance variables after the method has been called. 
+We must now use some judgment to define the kind of postconditions we would like to obtain of the ```withdraw()``` method. One property that would be nice to have, from a security point of view, is that it's not possible to *increase* the balance of the bank account by withdrawing money from it. 
 
-Armed with all this new syntax, the obvious next step in our journey towards verifying our ```withdraw()``` method would seem writing something like the following postcondition:
+In JML we write postconditions using ```ensures``` expressions of the form ```ensures POSTCONDITION```, where ```POSTCONDITION``` is our postcondition . 
 
-```@ ensures getBalance() <= \old(getBalance()) && getBalance() == \old(getBalance() - amount);```
 
-In english: ensure that the balance after the method is called is less than or equal to the balance the before the method is called (withdrawals never add money), and that the new balance is equal to the old balance minus the amount withdrawn. 
+To express our desired postcondition, we need one more piece of JML machinery. We need a way of making claims about the values of variables *before* the method is executed and the values of variables *after* the method has executed. We can do this using the ```old``` keyword, as in ```old(VARIABLE)```. The expression ```old(VARIABLE)``` refers to the vavlue of the variable ```VARIABLE``` before the method is executed, while the expression ```VARIABLE``` refers to the value of that variable after the method has executed. 
+
+Armed with all this new JML, the obvious next step in our journey towards verifying our ```withdraw()``` method would seem writing something like the following postcondition:
+``` ensures getBalance() <= \old(getBalance())```
+
+In English, this is saying "the bank balance after the amount is withdrawn cannot be bigger than before it was withdrawn". 
 
 After adding our ```ensures``` clause, our code looks like this:
 
@@ -144,7 +155,7 @@ public class BankAccount {
     }
     /*@ requires amount >= 0;
       @ assignable balance;
-      @ ensures getBalance() <= \old(getBalance()) && getBalance() == \old(getBalance() - amount) 
+      @ ensures getBalance() <= \old(getBalance());
     @*/
     public void withdraw(int amount) {
         balance -= amount; 
@@ -157,16 +168,13 @@ public class BankAccount {
 
 ## 7. Attempt verification
 
-At this point it might seem like we have everthing in place and the only thing left to do is feed our program into openJML for verification, but unfortunately we're not quite done yet. We *will* try to verify our program in a moment, but we'll find that openJML isn't yet ready to accept our annotations. Don't worry though, we'll fix it, but it's important to motivate the fix by considering the error messages openJML gives us. 
+At this point it might seem like we have everthing in place and the only thing left to do is feed our program into **OpenJML** for verification, but unfortunately we're not quite done yet. We *will* try to verify our program in a moment, but we'll find that **OpenJML** isn't yet ready to accept our specification. Don't worry though, we'll fix it, but it's important to motivate the fix by considering the error messages **OpenJML** gives us. 
 
-The reason it's so important to not just jump to the correct JML code is that *revising our code in response to openJML's error messages is an essential part of working with JML*. This tutorial wouldn't be complete if we didn't get our hands dirty with the trial-and-error revision process.
+The reason it's so important to not just jump to the correct JML code is that revising our code in response to **OpenJML** error messages is an essential part of working with JML. This tutorial wouldn't be complete if we didn't get our hands dirty with the trial-and-error revision process.
 
-Ok, now that we're emotionally prepared for failure, we try to verify what we've done so far with openJML:
+Ok, now that we're emotionally prepared for failure, let's try to verify what we've done so far by running the command ```./openJML -esc BankAccount.java ```.
 
-Command:
-```./openJML -esc BankAccount.java ```
-
-Output:
+### Expected Output:
 ```
 BankAccount.java:13: verify: The prover cannot establish an assertion (Postcondition: BankAccountBad.java:10:) in method withdraw
     public void withdraw(int amount) {
@@ -178,59 +186,85 @@ BankAccount.java:14: verify: The prover cannot establish an assertion (Arithmeti
         balance -= amount; 
                 ^
 3 verification failures
-
 ```
 
-## 7.Read OpenJML's output after the attempted verification
+## 8. Read OpenJML's output after the attempted verification
 
-Uh oh. Those errors from Step 7 don't look good! What happened? 
+Yikes. Those errors from Step 7 look pretty bad. What happened? 
 
-At first, our code and contract probably seem pretty good, but there's a problem. If we stop here, then OpenJML will *not* verify that our conditions hold. Why is that? Well, because there is a loop-hole in the BankAccount class as we currently wrote it that actually makes these conditions false under certain circumstances.
+At first, our code and contract probably seemed pretty reasonable, but there's a problem. There is a loop-hole in the BankAccount class as we currently wrote it that actually makes these conditions false under certain circumstances.
 
-The loop-hole is because we're representing the account balance with Java's int type. Since in Java ints are represented using the 2s-complement number system, they can underflow. That is, decrementing a 2s-complement number enough times eventually *increases* its value, when its value passes the minimum value that can be represented and "wraps around" to the maximum value that can be represented. 
+The loop-hole exists because we're representing the account balance with Java's int type. Since in Java ints are represented using the [2s-complement number system](glossary.md#2s-complement), they can underflow. That is, decrementing a 2s-complement number enough times eventually *increases* its value, when its value passes the minimum value that can be represented and "wraps around" to the maximum value that can be represented. 
 
-Because of this, our BankAccount class actually allows someone to *increase* their bank balance by withdrawing money! Not by withdrawing negative values of money, but by underflowing the int variable keeping track of the bank balance. JML just helped us catch a financially important logic bug! Now we just have to fix it.
+Because of this, our BankAccount class actually allows someone to *increase* their bank balance by withdrawing money! Not by withdrawing negative values of money, but by underflowing the int variable keeping track of the bank balance. JML just helped us catch an important logic bug! Now we just have to fix it.
 
 
-### 9.Revise the code to resolve loop-holes
+## 9. Revise the code to resolve loop-holes
 
-There are many ways we could fix our integer underflow problem. One of the most straightfoward is to just throw an exception in the pathological case, like so:
+There are many ways we could fix our integer underflow problem. One of the most straightfoward is to just throw an exception when we're given a value of ```amount``` that could cause underflow. 
 
-```java hl_lines="4-9" 
-public void withdraw(int amount) {
-    if ((long) balance - (long) amount < Integer.MIN_VALUE) {
-        throw new IllegalArgumentException("Withdrawal would cause underflow");
+
+
+```java hl_lines="7-11"
+public class BankAccountGood {
+    private /*@ spec_public @*/ int balance;
+
+    public BankAccountGood(int initialBalance) {
+        balance = initialBalance;
     }
-    balance -= amount;
-}
-```
-In our new ```withdraw()``` method, we check for underflow and throw an error if we find it, and we cast our ints to longs as we check to avoid creating an underflow in our check. This takes care of our underflow issue.
-
-## 10.Revising our JML conditions to match our new code
-
-We have fixed our code, but we've done so by introducing exceptions. We now need to adjust our contract to define correctness for those exceptions. Informally, our code should always throw an IllegalArgumentException when ```withdraw()``` is passed an underflow-producing value and never otherwise. Here's what that contract looks like in JML:
-
-```java hl_lines="4-9" 
-/*@ public normal_behavior
-  @ requires amount >= 0 && ((long) balance - (long) amount) >= Integer.MIN_VALUE;
-  @ assignable balance;
-  @ ensures balance == \old(balance) - amount;
-  @ also
-  @ public exceptional_behavior
-  @ requires amount >= 0 && ((long) balance - (long) amount) < Integer.MIN_VALUE;
-  @ signals_only IllegalArgumentException;
-@*/
-public void withdraw(int amount) {
-    if ((long) balance - (long) amount < Integer.MIN_VALUE) {
-        throw new IllegalArgumentException("Withdrawal would cause underflow");
+    public void withdraw(int amount) {
+        if ((long) balance - (long) amount < Integer.MIN_VALUE) {
+            throw new IllegalArgumentException("Withdrawal would cause underflow");
+        }
+        balance -= amount;
     }
-    balance -= amount;
+
+    /*@ pure @*/ public int getBalance() {
+        return balance;
+    }
 }
 ```
 
-There are a few new JML concepts here so let's unpack them. The first things to look at are these "behavior" expressions: ```public normal_behavior``` and ```public exceptional_beahvior```. The expressions allow us to break our contract into two cases: one where an exception is thrown (i.e, ```exceptional_behavior```) and one where no exceptions are thrown (i.e, ```normal_behavior```). We include both of these cases in our contract by using the ```also``` keyword. The ```also``` keyword lets us glue contracts together, requiring the both contracts be satisfied, analagous to how ```&&``` lets us glue predicates together, requiring that both be true for the whole expression to be true.
+In our new ```withdraw()``` method, we check for underflow and throw an exception if we find it, and we cast our ints to longs as we check to avoid creating an underflow in our check. This takes care of our underflow issue.
 
-The last think we need to look at is the ```signals_only``` clause. Expressions of the form ```signals_only E```, where ```E``` is an exception, require our code to *only* throw the exception ```E```. So, our ```signals_only``` line is saying "the only exception allowed by this contract is IllegalArgumentException".
+## 10. Revising our JML conditions to match our new code
+
+We have fixed our code, but we've done so by introducing exceptions. We now need to adjust our contract to define correctness for those exceptions. Informally, our code should always throw an IllegalArgumentException when ```withdraw()``` is passed an underflow-producing value and never otherwise. 
+
+We'll look at the JML code to do this and then unpack how it works. 
+
+```java hl_lines="7-15" 
+public class BankAccountGood {
+    private /*@ spec_public @*/ int balance;
+
+    public BankAccountGood(int initialBalance) {
+        balance = initialBalance;
+    }
+    /*@ public normal_behavior
+      @ requires amount >= 0 && ((long) balance - (long) amount) >= Integer.MIN_VALUE;
+      @ assignable balance;
+      @ ensures balance == \old(balance) - amount;
+      @ also
+      @ public exceptional_behavior
+      @ requires amount >= 0 && ((long) balance - (long) amount) < Integer.MIN_VALUE;
+      @ signals_only IllegalArgumentException;
+    @*/
+    public void withdraw(int amount) {
+        if ((long) balance - (long) amount < Integer.MIN_VALUE) {
+            throw new IllegalArgumentException("Withdrawal would cause underflow");
+        }
+        balance -= amount;
+    }
+
+    /*@ pure @*/ public int getBalance() {
+        return balance;
+    }
+}
+```
+
+The first things to look at are these "behavior" expressions: ```public normal_behavior``` and ```public exceptional_beahvior```. The expressions allow us to break our contract into two cases: one where an exception is thrown (i.e, ```exceptional_behavior```) and one where no exceptions are thrown (i.e, ```normal_behavior```). We include both of these cases in our contract by using the ```also``` keyword. The ```also``` keyword lets us glue contracts together, requiring the both contracts be satisfied, analagous to how ```&&``` lets us glue predicates together.
+
+The last think we need to look at is the ```signals_only``` clause. Expressions of the form ```signals_only E```, where ```E``` is an exception, require our code to *only* throw the exception ```E```. So, our ```signals_only``` line is saying "the only exception allowed by this contract is ```IllegalArgumentException```".
 
 To summarize: we've broken our contract into two cases: one where we detect that the withdrawal amount given will produce an underflow (```exceptional_behavior```) and one where we don't (```normal_behavior```) . Each case is a contract, with its own preconditions and postconditions. 
 

@@ -20,7 +20,7 @@ This document is for the curious java developer that wants to dip their toes in 
 
 ---
 ## Background on JML 
-JML ("Java Modeling Language") is a specification language for java. It is written in written in java comments, and is used to express *semantic properties* of programs (i.e, properties about the behaviour of the programs). We can use a program verification tool, like OpenJML, to *verify* a *contract* written in JML. OpenJML will read java code annoted with JML expressions and try to prove that the code satisfies the conditions expressed in those annotations. For example, someone might write JML code to assert that a method always returns a positive integer.
+JML ("Java Modeling Language") is a specification language for java. It is written in java comments, and is used to express *semantic properties* of programs (i.e, properties about the behaviour of the programs). We can use a program verification tool, like OpenJML, to *verify* a *contract* written in JML. OpenJML will read java code annoted with JML expressions and try to prove that the code satisfies the conditions expressed in those annotations. For example, someone might write JML code to assert that a method always returns a positive integer. We will refer to JML code used to express the properties we would like to verify as a ["specification"](glossary.md#specification). In this tutorial we will use the tool **OpenJML** to verify our specifications.
 
 Even if you're program *does* satisfy the conditions expressed in its JML code, there's no guarantee that a program verification tool will be able to prove that it does. However, if your program verification tool *can* prove that your program satisfies those conditions, you can be absolutely certain that the program satisfies those properties. 
 
@@ -53,7 +53,7 @@ This document is broken into three tasks, to be done in order.
 
 Each task will involve working towards some piece of formally verified java code. We will get there through a sequence of numbered steps. Almost all of these steps will involve writing code. The code will be presented *cumulatively*, with each step adding to what we've done so far. By the end of a task, we will have some code that we can feed into our JML verifier to prove correctness. We will explain our additions as we go. You should not expect the code to work until all the steps have been finished.
 
-
+Most new vocabulary will be defined as it is introduced, but we will link to [glossary](glossary.md) entries whenever we want to use a bit of jargon without immediately defining it.
 --- 
 ## Conventions
 
