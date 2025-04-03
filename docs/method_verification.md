@@ -14,7 +14,7 @@ We start off by writing our naive implementation of a class for modeling bank ac
 public class BankAccount {
     private int balance;
 
-    public BankAccountBad(int initialBalance) {
+    public BankAccount(int initialBalance) {
         balance = initialBalance;
     }
     
@@ -37,7 +37,7 @@ To verify the security of our software, we will want to come up with a [specific
 public class BankAccount {
     private /*@ spec_public @*/ int balance;
 
-    public BankAccountBad(int initialBalance) {
+    public BankAccount(int initialBalance) {
         balance = initialBalance;
     }
     
@@ -64,7 +64,7 @@ JML requires us to indicate which variables can be mutated by a given method and
 public class BankAccount {
     private /*@ spec_public @*/ int balance;
 
-    public BankAccountBad(int initialBalance) {
+    public BankAccount(int initialBalance) {
         balance = initialBalance;
     }
     /*@ assignable balance; @ */
@@ -88,7 +88,7 @@ We can create preconditions using the ```requires``` keyword. We will include th
 public class BankAccount {
     private /*@ spec_public @*/ int balance;
 
-    public BankAccountBad(int initialBalance) {
+    public BankAccount(int initialBalance) {
         balance = initialBalance;
     }
     /*@ requires amount >= 0;
@@ -112,7 +112,7 @@ A ['pure'](glossary.md#pure-methods) method is one without any side effects (i.e
 public class BankAccount {
     private /*@ spec_public @*/ int balance;
 
-    public BankAccountBad(int initialBalance) {
+    public BankAccount(int initialBalance) {
         balance = initialBalance;
     }
     /*@ requires amount >= 0;
@@ -150,7 +150,7 @@ After adding our ```ensures``` clause, our code looks like this:
 public class BankAccount {
     private /*@ spec_public @*/ int balance;
 
-    public BankAccountBad(int initialBalance) {
+    public BankAccount(int initialBalance) {
         balance = initialBalance;
     }
     /*@ requires amount >= 0;
@@ -176,10 +176,10 @@ Ok, now that we're emotionally prepared for failure, let's try to verify what we
 
 ### Expected Output:
 ```
-BankAccount.java:13: verify: The prover cannot establish an assertion (Postcondition: BankAccountBad.java:10:) in method withdraw
+BankAccount.java:13: verify: The prover cannot establish an assertion (Postcondition: BankAccount.java:10:) in method withdraw
     public void withdraw(int amount) {
                 ^
-BankAccount.java:10: verify: Associated declaration: BankAccountBad.java:13:
+BankAccount.java:10: verify: Associated declaration: BankAccount.java:13:
    @ ensures getBalance() <= \old(getBalance());
      ^
 BankAccount.java:14: verify: The prover cannot establish an assertion (ArithmeticOperationRange) in method withdraw: underflow in int difference
@@ -206,10 +206,10 @@ There are many ways we could fix our integer underflow problem. One of the most 
 
 
 ```java hl_lines="7-11"
-public class BankAccountGood {
+public class BankAccount {
     private /*@ spec_public @*/ int balance;
 
-    public BankAccountGood(int initialBalance) {
+    public BankAccount(int initialBalance) {
         balance = initialBalance;
     }
     public void withdraw(int amount) {
@@ -229,15 +229,15 @@ In our new ```withdraw()``` method, we check for underflow and throw an exceptio
 
 ## 10. Revising our JML conditions to match our new code
 
-We have fixed our code, but we've done so by introducing exceptions. We now need to adjust our contract to define correctness for those exceptions. Informally, our code should always throw an IllegalArgumentException when ```withdraw()``` is passed an underflow-producing value and never otherwise. 
+We have fixed our java code, but we've done so by introducing exceptions. We now need to adjust our contract to define correctness for those exceptions. Informally, our code should always throw an IllegalArgumentException when ```withdraw()``` is passed an underflow-producing value and never otherwise. 
 
 We'll look at the JML code to do this and then unpack how it works. 
 
 ```java hl_lines="7-15" 
-public class BankAccountGood {
+public class BankAccount {
     private /*@ spec_public @*/ int balance;
 
-    public BankAccountGood(int initialBalance) {
+    public BankAccount(int initialBalance) {
         balance = initialBalance;
     }
     /*@ public normal_behavior
@@ -264,21 +264,26 @@ public class BankAccountGood {
 
 The first things to look at are these "behavior" expressions: ```public normal_behavior``` and ```public exceptional_beahvior```. The expressions allow us to break our contract into two cases: one where an exception is thrown (i.e, ```exceptional_behavior```) and one where no exceptions are thrown (i.e, ```normal_behavior```). We include both of these cases in our contract by using the ```also``` keyword. The ```also``` keyword lets us glue contracts together, requiring the both contracts be satisfied, analagous to how ```&&``` lets us glue predicates together.
 
+The ```&&``` operator has the same meaning in JML as it does in Java (as do ```!``` and ```||```).
+
 The last think we need to look at is the ```signals_only``` clause. Expressions of the form ```signals_only E```, where ```E``` is an exception, require our code to *only* throw the exception ```E```. So, our ```signals_only``` line is saying "the only exception allowed by this contract is ```IllegalArgumentException```".
 
 To summarize: we've broken our contract into two cases: one where we detect that the withdrawal amount given will produce an underflow (```exceptional_behavior```) and one where we don't (```normal_behavior```) . Each case is a contract, with its own preconditions and postconditions. 
 
 ```normal_behavior```:
-    - Precondition: ```balance``` does not underflow
-    - Precondition: ```balance``` is the only variable that mutates.
-    - Postcondition: the new ```balance``` is the old ```balance``` minus ```amount```
+
+- Precondition: ```balance``` does not underflow
+- Precondition: ```balance``` is the only variable that mutates.
+- Postcondition: the new ```balance``` is the old ```balance``` minus ```amount```
+
 ```exceptional_behavior```:
-    - Precondition: ```balance``` **does* underflow
-    - Postcondition: ```IllegalArgumentException``` is thrown
+
+- Precondition: ```balance``` **does* underflow
+- Postcondition: ```IllegalArgumentException``` is thrown
 
 We join these contracts together with the ```also``` clause, allowing us to cover every possible case.
 
-## Final check
+## 11. Final check
 Having discovered a bug, fixed our code, and adjusted our contract to match our new code, we are (hopefully) in a position to prove the correctness of our code now. Run:
 
 ```./openJML -esc BankAccount.java```

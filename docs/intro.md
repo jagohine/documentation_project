@@ -17,6 +17,7 @@ This document is for the curious java developer that wants to dip their toes in 
 
 - basic knowledge of Java (syntax, types, OOP basics)
 - general knowledge of programming concepts
+- [OpenJML 21-0.8](https://github.com/OpenJML/OpenJML/releases/tag/21-0.8) installed
 
 ---
 ## Background on JML 
@@ -51,7 +52,7 @@ This document is broken into three tasks, to be done in order.
 3. specify properties of classes in general
 4. specify properties of interface implementations.
 
-Each task will involve working towards some piece of formally verified java code. We will get there through a sequence of numbered steps. Almost all of these steps will involve writing code. The code will be presented *cumulatively*, with each step adding to what we've done so far. By the end of a task, we will have some code that we can feed into our JML verifier to prove correctness. We will explain our additions as we go. You should not expect the code to work until all the steps have been finished.
+Each task will involve working towards some piece of formally verified java code. We will get there through a sequence of numbered steps. Almost all of these steps will involve writing code. The code will be presented *cumulatively*, with each step adding to what we've done so far. By the end of a task, we will have some code that we can feed into our JML verifier to prove correctness. We will explain our additions as we go. You should not expect verification to work until all the steps have been finished.
 
 Most new vocabulary will be defined as it is introduced, but we will link to [glossary](glossary.md) entries whenever we want to use a bit of jargon without immediately defining it.
 --- 

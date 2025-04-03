@@ -5,6 +5,9 @@
 !!! note
     Some of these definitions also appear in the tutorial itself, while other appear only here.
 
+## Logical Conditionals
+Logical conditionals are expressions of the form "If P then Q", and they are false if and only if "P" is true and "Q" is false. In JML they are written as "P => Q". 
+
 ## Property
 For us, a property will simply be some fact about some thing, as in "this ball has the property of being round" or "this method has the property of always returning positive ints". 
 
@@ -19,6 +22,10 @@ Postconditions are conditions about the environment that our specification requi
 
 ## Pure methods
  'pure' method is one without any side effects (i.e, one which doesn't mutate any instance variables). Pure methods are very important in JML because they are the only methods in terms of which we can write our contracts. 
+
+ ## Quantifier
+ A quantifier is an expression that refers to a collection of values, as in the phrases "Every apple is a fruit", or "Some insects are bees". In JML we can express statements asserting a property holds over *every* thing in some category using the ```\forall``` keyword, and we can express statements asserting a property holds over *some* thing in some category using the keyword ```\exists```. 
+
 
 ## 2s Complement
 A particular binary representation of integers. See [here](https://en.wikipedia.org/wiki/Two%27s_complement#:~:text=Two's%20complement%20uses%20the%20binary,number%20is%20signed%20as%20positive.) for details.

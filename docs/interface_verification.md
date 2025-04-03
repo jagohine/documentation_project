@@ -1,57 +1,95 @@
 
 # Task 3: Specify and verify the correctness of an interface implementation (with JML)
 
-In this task, we will specify and verify the correctness of a Java class that implements an interface, using JML. We'll define the interface and implementation in plain Java first, then progressively add JML specifications. Our goal is to ensure that the implementation respects the contracts declared in the interface.
+In our final task, we will specify an interface and verify that an implementation of that interface conforms to the specification. This will probably be the most interesting application for java developers, because it allows us to actually enforce the conditions the kind of properties that can only be informally suggested without JML. For example, if we create an interface called ```Circle``` which contains methods called  ```getCircumference``` and ```getRadius``` with the obvious signatures, there is nothing to stop someone writing a class to implement that interface which overrides ```getCircumference``` with some number *other* than 2πr. The interfaces can only constrain the signatures of the methods that their implementations override, they cannot constrain their behaviour. JML lets get around this limitation by allowing us to verify that an implementation of an interface conforms to the JML specification of that interface, which is what we will do in this task.
 
-Each step includes the complete code so far, with new lines **highlighted**.
+We will return to our code from task 1, this time introducing an interface. Since much of the code will be re-usable from task 1, this task will go much more quickly.
 
 ---
+## 1. Create another BankAccount class
 
-## Step 1: Define the interface
+```java
+public class BankAccount implements IBankAccount {
+    private int balance;
 
-We begin by defining a banking interface with three methods: `deposit`, `withdraw`, and `getBalance`. This interface is intentionally underspecified at this stage.
+
+    public BankAccount(int initialBalance) {
+        balance = initialBalance;
+    }
+    
+    public void withdraw(int amount) {
+        if ((long) balance - (long) amount < Integer.MIN_VALUE) {
+        throw new IllegalArgumentException("Withdrawal would cause underflow");
+    }
+    balance -= amount;
+}
+
+    public int getBalance() {
+        return balance;
+    }
+}
+
+
+```
+
+
+## 2. Create an BankAccount interface
+Write a minimal interface for our BankAccount class to implement.
 
 ```java
 public interface IBankAccount {
-    void deposit(int amount);
     void withdraw(int amount);
     int getBalance();
 }
+
+```
+## 3. Create specification for getBalance interface method
+Use the same specification for ```getBalance``` as in task 1.
+
+```java hl_lines="2-3"
+public interface IBankAccount {
+   //@ ensures \result >= Integer.MIN_VALUE;
+   /*@ pure @*/ int getBalance();
+   
+   void withdraw(int amount);
+}
 ```
 
----
+## 4. Create specification for withdraw interface method
+User the same interface for ```withdraw``` as in task 1.
 
-## Step 2: Implement the interface
+```java hl_lines="5-10"
+public interface IBankAccount {
+   //@ ensures \result >= Integer.MIN_VALUE;
+   /*@ pure @*/ int getBalance();
 
-Next, we define a concrete implementation, `SimpleAccount`, which maintains a private balance field. The logic enforces basic constraints (no overdrafts or negative transactions) using Java exceptions.
+   //@ requires amount >= 0 && ((long)getBalance() - (long)amount) >= Integer.MIN_VALUE;
+   //@ ensures getBalance() == \old(getBalance()) - amount;
+   //@ also
+   //@ public exceptional_behavior
+   //@ requires amount >= 0 && ((long)getBalance() - (long)amount) < Integer.MIN_VALUE;
+   //@ signals_only IllegalArgumentException;
+   void withdraw(int amount);
+}
+```
 
-```java
-public class SimpleAccount implements IBankAccount {
-    private int balance;
+## 5. Make balance spec_public
 
-    public SimpleAccount() {
-        this.balance = 0;
+```java hl_lines="2"
+public class BankAccount implements IBankAccount {
+    private /*@ spec_public @*/ int balance;
+
+
+    public BankAccount(int initialBalance) {
+        balance = initialBalance;
     }
-
-    public void deposit(int amount) {
-        if (amount < 0) {
-            throw new IllegalArgumentException("amount must be non-negative");
-        }
-        if (amount > Integer.MAX_VALUE - balance) {
-            throw new IllegalArgumentException("deposit would cause overflow");
-        }
-        balance += amount;
-    }
-
+    
     public void withdraw(int amount) {
-        if (amount < 0) {
-            throw new IllegalArgumentException("amount must be non-negative");
-        }
-        if (amount > balance) {
-            throw new IllegalArgumentException("insufficient funds");
-        }
-        balance -= amount;
+        if ((long) balance - (long) amount < Integer.MIN_VALUE) {
+        throw new IllegalArgumentException("Withdrawal would cause underflow");
     }
+    balance -= amount;
+}
 
     public int getBalance() {
         return balance;
@@ -59,119 +97,45 @@ public class SimpleAccount implements IBankAccount {
 }
 ```
 
-**Why?** We want our implementation to enforce safety at runtime, which we’ll later formalize and verify with JML.
+## 6. Make instance variables assignable
+```java hl_lines="3"
+public class BankAccount implements IBankAccount {
+    private /*@ spec_public @*/ int balance;
+    //@ assignable \everything;
 
----
-
-## Step 3: Mark `getBalance()` as pure in the interface
-
-To use `getBalance()` in specifications, we must mark it as `pure`. In JML, a method is *pure* if it has no side effects and may be called in annotations.
-
-```java
-public interface IBankAccount {
-    void deposit(int amount);
-    void withdraw(int amount);
-
-    /*@ pure @*/
-    int getBalance();
-}
-```
-
-**Why?** This makes `getBalance()` usable in JML expressions like `requires`, `ensures`, and `invariant`.
-
----
-
-## Step 4: Add `ensures` clause to `deposit()` in the interface
-
-We now specify what `deposit` is supposed to do: if you deposit a non-negative amount, the balance should increase accordingly.
-
-```java
-public interface IBankAccount {
-    /*@ requires amount >= 0;
-      @ ensures getBalance() == \old(getBalance()) + amount;
-      @ also
-      @ requires amount < 0;
-      @ signals (IllegalArgumentException e) true;
-      @*/
-    void deposit(int amount);
-
-    void withdraw(int amount);
-
-    /*@ pure @*/
-    int getBalance();
-}
-```
-
-**Why?** This expresses both the normal postcondition and the behavior when invalid input is given.
-
----
-
-## Step 5: Add `withdraw()` specification to the interface
-
-Now we specify that withdrawals must be non-negative and not exceed the balance, or else an exception is thrown.
-
-```java
-public interface IBankAccount {
-    /*@ requires amount >= 0;
-      @ ensures getBalance() == \old(getBalance()) + amount;
-      @ also
-      @ requires amount < 0;
-      @ signals (IllegalArgumentException e) true;
-      @*/
-    void deposit(int amount);
-
-    /*@ requires amount >= 0 && amount <= getBalance();
-      @ ensures getBalance() == \old(getBalance()) - amount;
-      @ also
-      @ requires amount < 0 || amount > getBalance();
-      @ signals (IllegalArgumentException e) true;
-      @*/
-    void withdraw(int amount);
-
-    /*@ pure @*/
-    int getBalance();
-}
-```
-
-**Why?** This ensures the caller knows under which conditions `withdraw` will succeed or fail.
-
----
-
-## Step 6: Add model field and `represents` clause to implementation
-
-We introduce a `model` field that represents the abstract value of the object, and a `represents` clause to link it to the internal `balance`.
-
-```java
-public class SimpleAccount implements IBankAccount {
-    private int balance;
-
-    /*@ public model int abstractBalance;
-      @ represents abstractBalance <- balance;
-      @*/
-
-    public SimpleAccount() {
-        this.balance = 0;
+    public BankAccount(int initialBalance) {
+        balance = initialBalance;
     }
-
-    public void deposit(int amount) {
-        if (amount < 0) {
-            throw new IllegalArgumentException("amount must be non-negative");
-        }
-        if (amount > Integer.MAX_VALUE - balance) {
-            throw new IllegalArgumentException("deposit would cause overflow");
-        }
-        balance += amount;
-    }
-
+    
     public void withdraw(int amount) {
-        if (amount < 0) {
-            throw new IllegalArgumentException("amount must be non-negative");
-        }
-        if (amount > balance) {
-            throw new IllegalArgumentException("insufficient funds");
-        }
-        balance -= amount;
+        if ((long) balance - (long) amount < Integer.MIN_VALUE) {
+        throw new IllegalArgumentException("Withdrawal would cause underflow");
     }
+    balance -= amount;
+}
+
+    public int getBalance() {
+        return balance;
+    }
+}
+```
+## 7. Write specification for BankAccount class constructor 
+```java hl_lines="5"
+public class BankAccount implements IBankAccount {
+    private /*@ spec_public @*/ int balance;
+    //@ assignable \everything;
+
+    //@ ensures balance == initialBalance;
+    public BankAccount(int initialBalance) {
+        balance = initialBalance;
+    }
+    
+    public void withdraw(int amount) {
+        if ((long) balance - (long) amount < Integer.MIN_VALUE) {
+        throw new IllegalArgumentException("Withdrawal would cause underflow");
+    }
+    balance -= amount;
+}
 
     public int getBalance() {
         return balance;
@@ -179,10 +143,74 @@ public class SimpleAccount implements IBankAccount {
 }
 ```
 
-**Why?** This allows us to write specifications in terms of a clean abstract value (`abstractBalance`) while hiding implementation details.
+## 8. Write specification for BankAccount class withdraw method
 
----
+```java hl_lines="9-15"
+public class BankAccount implements IBankAccount {
+    private /*@ spec_public @*/ int balance;
+    //@ assignable \everything;
 
-## Step 7–10: Specification of getBalance, deposit, withdraw, and verification
+    //@ ensures balance == initialBalance;
+    public BankAccount(int initialBalance) {
+        balance = initialBalance;
+    }
+    //@ also
+    //@ requires amount >= 0 && ((long)getBalance() - (long)amount) >= Integer.MIN_VALUE;
+    //@ ensures getBalance() == \old(getBalance()) - amount;
+    //@ also
+    //@ public exceptional_behavior
+    //@ requires amount >= 0 && ((long)getBalance() - (long)amount) < Integer.MIN_VALUE;
+    //@ signals_only IllegalArgumentException;
+    public void withdraw(int amount) {
+        if ((long) balance - (long) amount < Integer.MIN_VALUE) {
+        throw new IllegalArgumentException("Withdrawal would cause underflow");
+    }
+    balance -= amount;
+}
 
-[... content was truncated for brevity here. See the next step for file write.]
+
+    public int getBalance() {
+        return balance;
+    }
+}
+```
+## 9. Write specification for BankAccount class getBalance method
+
+
+```java hl_lines="5"
+public class BankAccount implements IBankAccount {
+    private /*@ spec_public @*/ int balance;
+    //@ assignable \everything;
+
+    //@ ensures balance == initialBalance;
+    public BankAccount(int initialBalance) {
+        balance = initialBalance;
+    }
+    //@ also
+    //@ requires amount >= 0 && ((long)getBalance() - (long)amount) >= Integer.MIN_VALUE;
+    //@ ensures getBalance() == \old(getBalance()) - amount;
+    //@ also
+    //@ public exceptional_behavior
+    //@ requires amount >= 0 && ((long)getBalance() - (long)amount) < Integer.MIN_VALUE;
+    //@ signals_only IllegalArgumentException;
+    public void withdraw(int amount) {
+        if ((long) balance - (long) amount < Integer.MIN_VALUE) {
+        throw new IllegalArgumentException("Withdrawal would cause underflow");
+    }
+    balance -= amount;
+}
+
+    //@ also
+    //@ ensures \result == balance;
+    public /*@ pure @*/ int getBalance() {
+        return balance;
+    }
+
+}
+```
+
+## 10. Verify specification
+
+At this point we have annotated our interface and our class with the appropriate specifications, and we can proceed to verify that the class in fact conforms to the specification.
+
+**Command**: ```./openJML -esc BankAccount.java IBankAccount.java ```
