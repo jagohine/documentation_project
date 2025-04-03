@@ -284,7 +284,42 @@ To summarize: we've broken our contract into two cases: one where we detect that
 We join these contracts together with the ```also``` clause, allowing us to cover every possible case.
 
 ## 11. Final check
+
+**BankAccount complete code**:
+
+```java  
+public class BankAccount {
+    private /*@ spec_public @*/ int balance;
+
+    public BankAccount(int initialBalance) {
+        balance = initialBalance;
+    }
+    /*@ public normal_behavior
+      @ requires amount >= 0 && ((long) balance - (long) amount) >= Integer.MIN_VALUE;
+      @ assignable balance;
+      @ ensures balance == \old(balance) - amount;
+      @ also
+      @ public exceptional_behavior
+      @ requires amount >= 0 && ((long) balance - (long) amount) < Integer.MIN_VALUE;
+      @ signals_only IllegalArgumentException;
+    @*/
+    public void withdraw(int amount) {
+        if ((long) balance - (long) amount < Integer.MIN_VALUE) {
+            throw new IllegalArgumentException("Withdrawal would cause underflow");
+        }
+        balance -= amount;
+    }
+
+    /*@ pure @*/ public int getBalance() {
+        return balance;
+    }
+}
+```
+
+
 Having discovered a bug, fixed our code, and adjusted our contract to match our new code, we are (hopefully) in a position to prove the correctness of our code now. Run:
+
+
 
 ```./openJML -esc BankAccount.java```
 
