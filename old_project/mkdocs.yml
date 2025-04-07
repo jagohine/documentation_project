@@ -5,12 +5,12 @@ theme:
     - content.code.copy
 
 nav:
-  - Home: index.md
-  - Task 1 - Budget Tracker: task1.md
-  - Task 2 - "To Do" Tracker: task2.md
-  - Task 3 - Merging Sheets: task3.md
-  - Glossary : glossary.md
-  - Troubleshooting : troubleshooting.md
+  - Home: intro.md
+  - Task 1 - Specifying methods: method_verification.md
+  - Task 2 - Specifying class invariants: new_account_registry_task.md
+  - Task 3 - Specifying interface implementations: interface_verification.md
+  - Glossary: glossary.md
+  - About: about.md
 
 markdown_extensions:
   - admonition

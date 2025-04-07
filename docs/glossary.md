@@ -1,33 +1,69 @@
 # Glossary
-!!! note
-    Terms in this glossary are defined informally and are intended to provide the reader with enough understanding to follow the tutorial. For more rigorous and complete definitions, consult [our external resources page](external_resources.md).
 
-!!! note
-    Some of these definitions also appear in the tutorial itself, while other appear only here.
+A reference list of important terms used throughout the tutorial. 
 
-## Logical Conditionals
-Logical conditionals are expressions of the form "If P then Q", and they are false if and only if "P" is true and "Q" is false. In JML they are written as "P => Q". 
+---
 
-## Property
-For us, a property will simply be some fact about some thing, as in "this ball has the property of being round" or "this method has the property of always returning positive ints". 
+**Active Cell**  
+The currently selected cell in a spreadsheet. It is highlighted and ready to receive input.
 
-## Specification
-A specification is a section of JML code that asserts that a portion of java code has a certain property. Specifications can be composed of other specifications. We *verify* that a piece of code conforms to a specification using a software verification tool like **OpenJML**.
+**Array Formula**  
+A formula that can return multiple values or process a range of cells at once. Often used with functions like `QUERY`, `FILTER`, or `{ ... }` stacking.
 
-## Precondition
-Preconditions are the assumptions we make about the environment before we verify things. We use them to verify that some property holds of some object, *under some assumption*. For example, a precondition in a method specification could be that the value of an argument variable was positive. This ability (to make specifications that depend on assumptions) is extremely useful, because it allows us to break up "the burden of proof" (i.e, what openJML has to prove) into different components, which can make proofs easier to discover and easier to understand.
+**Cell Range**  
+A group of adjacent cells defined by a start and end point, such as `A2:D10`.
 
-## Postcondition
-Postconditions are conditions about the environment that our specification requires are true after our method has executed. When combined with precondiions, we can write specifications of the form "If this precondition obtains, then this postcondition must obtain". 
+**Chart Editor**  
+A sidebar tool in Google Sheets used to customize and format charts (e.g. pie, bar, column).
 
-## Pure methods
- 'pure' method is one without any side effects (i.e, one which doesn't mutate any instance variables). Pure methods are very important in JML because they are the only methods in terms of which we can write our contracts. 
+**Conditional Formatting**  
+A feature that changes the appearance of cells automatically based on their values. Often used to highlight overdue dates or incomplete tasks.
 
- ## Quantifier
- A quantifier is an expression that refers to a collection of values, as in the phrases "Every apple is a fruit", or "Some insects are bees". In JML we can express statements asserting a property holds over *every* thing in some category using the ```\forall``` keyword, and we can express statements asserting a property holds over *some* thing in some category using the keyword ```\exists```. 
+**Data Validation**  
+A way to restrict what values a user can enter in a cell. Commonly used to create dropdown lists.
 
+**Dropdown List**  
+A menu that lets users pick from a predefined list of values inside a cell.
 
-## 2s Complement
-A particular binary representation of integers. See [here](https://en.wikipedia.org/wiki/Two%27s_complement#:~:text=Two's%20complement%20uses%20the%20binary,number%20is%20signed%20as%20positive.) for details.
+**Freeze Row/Column**  
+Locks a row or column in place so it stays visible while you scroll. Often used to keep headers visible.
 
+**Function**  
+A built-in operation in Google Sheets that performs calculations or logic. Examples: `SUM`, `FILTER`, `TODAY`.
+
+**Header Row**  
+The first row in a table, typically containing column titles. Often frozen and protected.
+
+**IMPORTRANGE**  
+A function used to bring in data from a different spreadsheet using its URL.
+
+**Logical Formula**  
+A formula that uses functions like `AND`, `OR`, and comparison operators to return `TRUE` or `FALSE`.
+
+**Merged Table**  
+A combined dataset from multiple sources, usually built with `{Sheet1!A2:D; Sheet2!A2:D}` and cleaned with `QUERY`.
+
+**Pie Chart**  
+A circular chart that shows proportions as slices. Useful for showing how expenses or categories are distributed.
+
+**Protect Range**  
+A feature that limits who can edit specific cells, helping prevent accidental changes to important formulas or headers.
+
+**QUERY**  
+A flexible function that allows SQL-like queries on a range. Useful for filtering or combining data.
+
+**SEARCH**  
+A function that looks for a substring inside a text string and returns the position if found, or an error if not.
+
+**SUM**  
+A function that adds together numeric values. Example: `=SUM(D2:D)`.
+
+**SUMIF**  
+A function that adds values that match a specific condition. Example: `=SUMIF(C2:C, "Food", D2:D)`.
+
+**TODAY**  
+A function that returns the current date. Automatically updates each day.
+
+**Toolbar**  
+The row of buttons at the top of Google Sheets used to apply formatting, insert charts, and access tools.
 
