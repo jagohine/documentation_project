@@ -1,4 +1,4 @@
-site_name: Google Sheets Documentation
+site_name: Documentation for Google Sheets
 theme:
   name: material
   features:
